@@ -91,6 +91,12 @@
 #include "scan_lists.h"
 #include "payload.h"
 
+// 在包含 scan_lists.h 之後包含優化模組，避免 stype 定義衝突
+#include "nmap_integration_patch.h"
+
+// 全局優化開關
+bool g_optimization_enabled = false;
+
 #ifndef NOLUA
 #include "nse_main.h"
 #endif
@@ -621,6 +627,7 @@ void parse_options(int argc, char **argv) {
     {"ip-options", required_argument, 0, 0},
     {"min-rate", required_argument, 0, 0},
     {"max-rate", required_argument, 0, 0},
+    {"optimize", no_argument, 0, 0},
     {"adler32", no_argument, 0, 0},
     {"stats-every", required_argument, 0, 0},
     {"disable-arp-ping", no_argument, 0, 0},
@@ -729,6 +736,9 @@ void parse_options(int argc, char **argv) {
           o.nogcc = true;
         } else if (strcmp(long_options[option_index].name, "release-memory") == 0) {
           o.release_memory = true;
+        } else if (strcmp(long_options[option_index].name, "optimize") == 0) {
+          // Enable optimization mode
+          NmapIntegration::g_optimization_wrapper.set_optimization_enabled(true);
         } else if (strcmp(long_options[option_index].name, "min-parallelism") == 0) {
           o.min_parallelism = atoi(optarg);
           if (o.min_parallelism < 1)
@@ -1841,6 +1851,7 @@ void nmap_free_mem() {
 }
 
 int nmap_main(int argc, char *argv[]) {
+  
   int i;
   std::vector<Target *> Targets;
   time_t now;
@@ -1892,6 +1903,12 @@ int nmap_main(int argc, char *argv[]) {
 #endif
 
   parse_options(argc, argv);
+
+  // Initialize optimization module after parsing options
+  NmapIntegration::handle_optimization_options(argc, argv);
+  if (g_optimization_enabled) {
+    NmapIntegration::initialize_optimization_modules();
+  }
 
   if (o.debugging)
     nbase_set_log(fatal, error);
@@ -2214,41 +2231,89 @@ int nmap_main(int argc, char *argv[]) {
 
     if (!o.noportscan) {
       // Ultra_scan sets o.scantype for us so we don't have to worry
-      if (o.synscan)
-        ultra_scan(Targets, &ports, SYN_SCAN);
+      if (o.synscan) {
+        if (g_optimization_enabled)
+          NmapIntegration::ultra_scan_optimized(Targets, &ports, SYN_SCAN);
+        else
+          ultra_scan(Targets, &ports, SYN_SCAN);
+      }
 
-      if (o.ackscan)
-        ultra_scan(Targets, &ports, ACK_SCAN);
+      if (o.ackscan) {
+        if (g_optimization_enabled)
+          NmapIntegration::ultra_scan_optimized(Targets, &ports, ACK_SCAN);
+        else
+          ultra_scan(Targets, &ports, ACK_SCAN);
+      }
 
-      if (o.windowscan)
-        ultra_scan(Targets, &ports, WINDOW_SCAN);
+      if (o.windowscan) {
+        if (g_optimization_enabled)
+          NmapIntegration::ultra_scan_optimized(Targets, &ports, WINDOW_SCAN);
+        else
+          ultra_scan(Targets, &ports, WINDOW_SCAN);
+      }
 
-      if (o.finscan)
-        ultra_scan(Targets, &ports, FIN_SCAN);
+      if (o.finscan) {
+        if (g_optimization_enabled)
+          NmapIntegration::ultra_scan_optimized(Targets, &ports, FIN_SCAN);
+        else
+          ultra_scan(Targets, &ports, FIN_SCAN);
+      }
 
-      if (o.xmasscan)
-        ultra_scan(Targets, &ports, XMAS_SCAN);
+      if (o.xmasscan) {
+        if (g_optimization_enabled)
+          NmapIntegration::ultra_scan_optimized(Targets, &ports, XMAS_SCAN);
+        else
+          ultra_scan(Targets, &ports, XMAS_SCAN);
+      }
 
-      if (o.nullscan)
-        ultra_scan(Targets, &ports, NULL_SCAN);
+      if (o.nullscan) {
+        if (g_optimization_enabled)
+          NmapIntegration::ultra_scan_optimized(Targets, &ports, NULL_SCAN);
+        else
+          ultra_scan(Targets, &ports, NULL_SCAN);
+      }
 
-      if (o.maimonscan)
-        ultra_scan(Targets, &ports, MAIMON_SCAN);
+      if (o.maimonscan) {
+        if (g_optimization_enabled)
+          NmapIntegration::ultra_scan_optimized(Targets, &ports, MAIMON_SCAN);
+        else
+          ultra_scan(Targets, &ports, MAIMON_SCAN);
+      }
 
-      if (o.udpscan)
-        ultra_scan(Targets, &ports, UDP_SCAN);
+      if (o.udpscan) {
+        if (g_optimization_enabled)
+          NmapIntegration::ultra_scan_optimized(Targets, &ports, UDP_SCAN);
+        else
+          ultra_scan(Targets, &ports, UDP_SCAN);
+      }
 
-      if (o.connectscan)
-        ultra_scan(Targets, &ports, CONNECT_SCAN);
+      if (o.connectscan) {
+        if (g_optimization_enabled)
+          NmapIntegration::ultra_scan_optimized(Targets, &ports, CONNECT_SCAN);
+        else
+          ultra_scan(Targets, &ports, CONNECT_SCAN);
+      }
 
-      if (o.sctpinitscan)
-        ultra_scan(Targets, &ports, SCTP_INIT_SCAN);
+      if (o.sctpinitscan) {
+        if (g_optimization_enabled)
+          NmapIntegration::ultra_scan_optimized(Targets, &ports, SCTP_INIT_SCAN);
+        else
+          ultra_scan(Targets, &ports, SCTP_INIT_SCAN);
+      }
 
-      if (o.sctpcookieechoscan)
-        ultra_scan(Targets, &ports, SCTP_COOKIE_ECHO_SCAN);
+      if (o.sctpcookieechoscan) {
+        if (g_optimization_enabled)
+          NmapIntegration::ultra_scan_optimized(Targets, &ports, SCTP_COOKIE_ECHO_SCAN);
+        else
+          ultra_scan(Targets, &ports, SCTP_COOKIE_ECHO_SCAN);
+      }
 
-      if (o.ipprotscan)
-        ultra_scan(Targets, &ports, IPPROT_SCAN);
+      if (o.ipprotscan) {
+        if (g_optimization_enabled)
+          NmapIntegration::ultra_scan_optimized(Targets, &ports, IPPROT_SCAN);
+        else
+          ultra_scan(Targets, &ports, IPPROT_SCAN);
+      }
 
       /* These lame functions can only handle one target at a time */
       if (o.idlescan) {
@@ -2373,6 +2438,12 @@ int nmap_main(int argc, char *argv[]) {
   if (o.release_memory) {
     nmap_free_mem();
   }
+  
+  // Cleanup optimization module
+  if (g_optimization_enabled) {
+    NmapIntegration::cleanup_optimization_modules();
+  }
+  
   return 0;
 }
 

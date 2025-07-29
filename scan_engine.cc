@@ -1,4 +1,3 @@
-
 /***************************************************************************
  * scan_engine.cc -- Includes much of the "engine" functions for scanning, *
  * such as ultra_scan.  It also includes dependent functions such as those *
@@ -2227,7 +2226,7 @@ static void sendNextRetryStackProbe(UltraScanInfo *USI, HostScanStats *hss) {
   }
 }
 
-static void doAnyNewProbes(UltraScanInfo *USI) {
+ void doAnyNewProbes(UltraScanInfo *USI) {
   HostScanStats *hss, *unableToSend;
 
   gettimeofday(&USI->now, NULL);
@@ -2251,7 +2250,7 @@ static void doAnyNewProbes(UltraScanInfo *USI) {
   }
 }
 
-static void doAnyRetryStackRetransmits(UltraScanInfo *USI) {
+ void doAnyRetryStackRetransmits(UltraScanInfo *USI) {
   HostScanStats *hss, *unableToSend;
 
   gettimeofday(&USI->now, NULL);
@@ -2325,7 +2324,7 @@ static void sendGlobalPingProbe(UltraScanInfo *USI) {
   sendPingProbe(USI, hss);
 }
 
-static void doAnyPings(UltraScanInfo *USI) {
+ void doAnyPings(UltraScanInfo *USI) {
   std::multiset<HostScanStats *, HssPredicate>::iterator hostI;
   HostScanStats *hss = NULL;
 
@@ -2399,7 +2398,7 @@ struct ProbeCacheNode {
 
 /* Go through the ProbeQueue of each host, identify any
    timed out probes, then try to retransmit them as appropriate */
-static void doAnyOutstandingRetransmits(UltraScanInfo *USI) {
+ void doAnyOutstandingRetransmits(UltraScanInfo *USI) {
   std::multiset<HostScanStats *, HssPredicate>::iterator hostI;
   /* A cache of the last processed probe from each host, to avoid re-examining a
      bunch of probes to find the next one that needs to be retransmitted. */
@@ -2531,7 +2530,7 @@ static void printAnyStats(UltraScanInfo *USI) {
     USI->SPM->printStatsIfNecessary(USI->getCompletionFraction(), &USI->now);
 }
 
-static void waitForResponses(UltraScanInfo *USI) {
+ void waitForResponses(UltraScanInfo *USI) {
   struct timeval stime;
   bool gotone;
   gettimeofday(&USI->now, NULL);
@@ -2563,7 +2562,7 @@ static void waitForResponses(UltraScanInfo *USI) {
 
 /* Go through the data structures, making appropriate changes (such as expiring
    probes, noting when hosts are complete, etc. */
-static void processData(UltraScanInfo *USI) {
+ void processData(UltraScanInfo *USI) {
   std::multiset<HostScanStats *, HssPredicate>::iterator hostI;
   std::list<UltraProbe *>::iterator probeI, nextProbeI;
   HostScanStats *host = NULL;
@@ -2830,4 +2829,29 @@ void ultra_scan(std::vector<Target *> &Targets, const struct scan_lists *ports,
 
   if (o.debugging > 2 && USI.pd != NULL)
     pcap_print_stats(LOG_PLAIN, USI.pd);
+}
+
+// UltraScanInfo 類的方法實現
+void UltraScanInfo::doAnyPings() {
+  ::doAnyPings(this);
+}
+
+void UltraScanInfo::doAnyOutstandingRetransmits() {
+  ::doAnyOutstandingRetransmits(this);
+}
+
+void UltraScanInfo::doAnyRetryStackRetransmits() {
+  ::doAnyRetryStackRetransmits(this);
+}
+
+void UltraScanInfo::doAnyNewProbes() {
+  ::doAnyNewProbes(this);
+}
+
+void UltraScanInfo::waitForResponses() {
+  ::waitForResponses(this);
+}
+
+void UltraScanInfo::processData() {
+  ::processData(this);
 }

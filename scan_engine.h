@@ -611,6 +611,14 @@ public:
   void log_overall_rates(int logt) const;
   void log_current_rates(int logt, bool update = true);
 
+  // 掃描引擎方法
+  void doAnyPings();
+  void doAnyOutstandingRetransmits();
+  void doAnyRetryStackRetransmits();
+  void doAnyNewProbes();
+  void waitForResponses();
+  void processData();
+
   /* Any function which messes with (removes elements from)
      incompleteHosts may have to manipulate nextI */
   std::multiset<HostScanStats *, HssPredicate> incompleteHosts;

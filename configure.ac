@@ -1112,6 +1112,20 @@ AC_SUBST(NCAT_UNINSTALL)
 AC_SUBST(NCAT_CLEAN)
 AC_SUBST(NCAT_DIST_CLEAN)
 
+# Add optimization options
+AC_ARG_ENABLE([optimization],
+    AS_HELP_STRING([--enable-optimization], [Enable performance optimization features]),
+    [enable_optimization=$enableval],
+    [enable_optimization=no])
+
+if test "x$enable_optimization" = "xyes"; then
+    AC_DEFINE([ENABLE_OPTIMIZATION], [1], [Enable optimization features])
+    CPPFLAGS="$CPPFLAGS -DENABLE_OPTIMIZATION"
+    trace_use="$trace_use optimization"
+else
+    trace_no_use="$trace_no_use optimization"
+fi
+
 AC_OUTPUT(Makefile libnetutil/Makefile)
 
 # Krad ASCII ART#!#@$!@#$
